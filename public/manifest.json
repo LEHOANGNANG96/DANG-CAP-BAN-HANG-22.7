@@ -1,0 +1,27 @@
+{
+  "short_name": "Shopee VIP",
+  "name": "Shopee Official Mall Vietnam",
+  "description": "Shopee Official Mall Vietnam - Hệ sinh thái mua sắm thông minh, uy tín và đẳng cấp hàng đầu.",
+  "icons": [
+    {
+      "src": "https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/icon_favicon_1_96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/icon_favicon_1_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/icon_favicon_1_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#EE4D2D",
+  "theme_color": "#EE4D2D",
+  "display": "standalone",
+  "orientation": "portrait"
+}

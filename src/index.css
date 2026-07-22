@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-shopee: #ee4d2d;
+  --color-shopee-hover: #f05d40;
+  --color-shopee-light: #ff6533;
+}

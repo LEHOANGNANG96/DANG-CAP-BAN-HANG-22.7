@@ -1,0 +1,28 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Database files and heavy archives
+products.db
+products.db-shm
+products.db-wal
+products_export.json
+shopee-pro-shop-source.zip
+bun.lock
+
+# Dynamically generated product JSON files (60,000+ files / 120MB+)
+public/data/products/
+public/data/products_temp/
+public/data/products_old/
+public/data/*.tmp
+public/data/*.json.tmp
+
+# Logs and status
+firebase_debug.log
+quota_status.json
+
