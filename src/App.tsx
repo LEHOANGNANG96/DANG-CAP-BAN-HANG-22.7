@@ -43,13 +43,17 @@ import {
   QrCode,
   Share2,
   Copy,
-  Check
+  Check,
+  Star
 } from 'lucide-react';
 import { CATEGORIES, Product, PRODUCTS, formatPrice, formatDiscount, formatSoldCount, DEFAULT_CATEGORIES } from './constants';
 import { auth, loginWithGoogle, logout, onAuthStateChanged, User } from './firebase';
 import { ShopeeSections } from './components/ShopeeSections';
 import { ProductCard, ProductSkeleton } from './components/ProductCard';
 import { BenefitItem } from './components/BenefitItem';
+import { SkipToContent } from './components/SkipToContent';
+import { CommandPalette } from './components/CommandPalette';
+import { StatusBadge } from './components/StatusBadge';
 import Fuse from 'fuse.js';
 import slugify from 'slugify';
 
@@ -168,6 +172,24 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [installCopied, setInstallCopied] = useState(false);
   const [activeInstallTab, setActiveInstallTab] = useState<'ios' | 'android' | 'store'>('ios');
+
+  // Quick View Modal, Command Palette & Scroll Top states
+  const [selectedQuickProduct, setSelectedQuickProduct] = useState<Product | null>(null);
+  const [quickViewCopied, setQuickViewCopied] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isCmdKOpen, setIsCmdKOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -1585,10 +1607,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-        <motion.div
-          className="fixed top-0 left-0 right-0 h-1 bg-shopee z-[100] origin-left"
-          style={{ scaleX }}
-        />
+      <SkipToContent />
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-shopee z-[100] origin-left"
+        style={{ scaleX }}
+      />
       {/* Top App Download Bar */}
       <div className="bg-gradient-to-r from-shopee via-orange-500 to-red-500 text-white py-2 text-[11px] md:text-xs font-semibold shadow-sm border-b border-shopee/10">
         <div className="max-w-7xl mx-auto px-4 flex flex-row justify-between items-center gap-2">
@@ -1623,28 +1646,36 @@ export default function App() {
           </div>
 
           {/* Search Bar in Header */}
-          <div className="relative flex-grow max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text"
-              placeholder="Tìm kiếm sản phẩm..."
-              value={searchQuery}
-              onFocus={fetchSearchIndex}
-              onChange={(e) => {
-                handleSearchChange(e);
-                fetchSearchIndex();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearchSubmit(e);
-                }
-              }}
-              className={`w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-shopee focus:ring-2 focus:ring-shopee/20 outline-none transition-all text-sm ${isPending || isSearchLoading ? 'opacity-70' : ''}`}
-            />
+          <div className="relative flex-grow max-w-md flex items-center gap-2">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text"
+                placeholder="Tìm kiếm sản phẩm..."
+                value={searchQuery}
+                onFocus={fetchSearchIndex}
+                onChange={(e) => {
+                  handleSearchChange(e);
+                  fetchSearchIndex();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearchSubmit(e);
+                  }
+                }}
+                className={`w-full pl-10 pr-16 py-2 rounded-xl border border-gray-200 focus:border-shopee focus:ring-2 focus:ring-shopee/20 outline-none transition-all text-sm ${isPending || isSearchLoading ? 'opacity-70' : ''}`}
+              />
+              <button
+                id="cmd-k-trigger"
+                onClick={() => setIsCmdKOpen(true)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold bg-gray-100 hover:bg-orange-50 hover:text-shopee text-gray-500 rounded-md border border-gray-200 transition-colors cursor-pointer"
+                title="Mở bảng tìm kiếm nhanh (Ctrl + K)"
+              >
+                Ctrl K
+              </button>
+            </div>
             {(isPending || isSearchLoading) && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-shopee"></div>
-              </div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-shopee flex-shrink-0"></div>
             )}
           </div>
 
@@ -1705,7 +1736,9 @@ export default function App() {
           categories={categories}
           onCategorySelect={handleCategorySelect}
           activeCategory={activeCategory}
+          onQuickViewProduct={(p) => setSelectedQuickProduct(p)}
         />
+
 
         {/* Catalog Section */}
         <section id="deals" className="py-16 bg-white">
@@ -1789,6 +1822,7 @@ export default function App() {
                   <ProductCard 
                     key={`${product.id}-${idx}`} 
                     product={product} 
+                    onQuickView={(p) => setSelectedQuickProduct(p)}
                   />
                 ))
               ) : !isLoading && (
@@ -3746,6 +3780,164 @@ export default function App() {
       </div>
     )}
   </AnimatePresence>
+
+      {/* Quick View Product Modal */}
+      <AnimatePresence>
+        {selectedQuickProduct && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedQuickProduct(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10 border border-gray-100"
+            >
+              <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                <div className="flex items-center gap-2">
+                  <span className="bg-red-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Shopee Mall
+                  </span>
+                  <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-4 h-4" /> Cam Kết Chính Hãng 100%
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setSelectedQuickProduct(null)} 
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-4 sm:p-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+                  {/* Image */}
+                  <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 shadow-inner">
+                    <img 
+                      src={selectedQuickProduct.image || (selectedQuickProduct as any).img || 'https://picsum.photos/seed/product/400/400'} 
+                      alt={selectedQuickProduct.name || (selectedQuickProduct as any).n} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    {(selectedQuickProduct.discountPercent || (selectedQuickProduct as any).pct) && (
+                      <div className="absolute top-3 right-3 bg-red-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-md">
+                        Giảm {(selectedQuickProduct.discountPercent || (selectedQuickProduct as any).pct).replace(/\D/g, '')}%
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-4">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
+                      {selectedQuickProduct.name || (selectedQuickProduct as any).n}
+                    </h2>
+
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className="flex items-center text-amber-500 font-bold">
+                        <Star className="w-4 h-4 fill-amber-400 text-amber-400 mr-1" />
+                        {selectedQuickProduct.ratingScore || (selectedQuickProduct as any).rs || '4.9'}
+                      </span>
+                      <span>•</span>
+                      <span>Đã bán {selectedQuickProduct.soldCount || (selectedQuickProduct as any).s || '1.2k+'}</span>
+                    </div>
+
+                    {/* Pricing breakdown */}
+                    <div className="bg-orange-50/80 p-4 rounded-2xl border border-orange-100 space-y-1">
+                      <div className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
+                        Giá ưu đãi độc quyền
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl sm:text-3xl font-black text-shopee">
+                          {formatPrice(selectedQuickProduct.discountPrice || (selectedQuickProduct as any).p)}đ
+                        </span>
+                        {(selectedQuickProduct.originalPrice || (selectedQuickProduct as any).op) && (
+                          <span className="text-xs text-gray-400 line-through">
+                            {formatPrice(selectedQuickProduct.originalPrice || (selectedQuickProduct as any).op)}đ
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Perks */}
+                    <div className="space-y-2 pt-2 text-xs text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                        <span>Miễn phí vận chuyển toàn quốc (FreeShip Xtra)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                        <span>Cam kết đổi trả 7 ngày nếu có lỗi từ nhà sản xuất</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                        <span>Thanh toán khi nhận hàng (COD) hoặc qua ShopeePay</span>
+                      </div>
+                    </div>
+
+                    {/* Affiliate Redirect CTA */}
+                    <div className="space-y-3 pt-4 border-t border-gray-100">
+                      <a 
+                        href={selectedQuickProduct.affiliateUrl || (selectedQuickProduct as any).u || 'https://shopee.vn'} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="w-full py-3.5 bg-shopee hover:bg-shopee-hover text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-shopee/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span>MUA NGAY TRÊN SHOPEE</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+
+                      <button 
+                        onClick={() => {
+                          const url = selectedQuickProduct.affiliateUrl || (selectedQuickProduct as any).u || 'https://shopee.vn';
+                          navigator.clipboard.writeText(url);
+                          setQuickViewCopied(true);
+                          toast.success('Đã sao chép đường dẫn sản phẩm!');
+                          setTimeout(() => setQuickViewCopied(false), 2000);
+                        }}
+                        className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border border-gray-200 cursor-pointer"
+                      >
+                        {quickViewCopied ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-600" />
+                            <span className="text-emerald-600 font-bold">Đã sao chép đường dẫn!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-4 h-4" />
+                            <span>Chia sẻ đường dẫn sản phẩm này</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Command Palette Modal (Ctrl + K) */}
+      <CommandPalette
+        isOpen={isCmdKOpen}
+        onClose={() => setIsCmdKOpen(false)}
+        products={products}
+        categories={categories}
+        onSelectCategory={(catName) => {
+          handleCategorySelect(catName);
+          scrollToDeals();
+        }}
+        onSelectProduct={(product) => {
+          setSelectedQuickProduct(product);
+        }}
+      />
 
       {/* Scroll to Bottom Button */}
       <button 
