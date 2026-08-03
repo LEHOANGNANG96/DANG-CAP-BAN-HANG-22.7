@@ -92,7 +92,7 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('popular');
   const [sessionSeed] = useState(() => Math.floor(Math.random() * 1000000));
 
 
@@ -1761,12 +1761,6 @@ export default function App() {
             <div className="bg-gray-50 p-3 rounded-xl mb-6 flex flex-wrap items-center gap-4 border border-gray-100">
               <span className="text-sm text-gray-500 font-medium ml-2">Sắp xếp theo:</span>
               <div className="flex flex-wrap items-center gap-2">
-                <button 
-                  onClick={() => setSortBy('newest')}
-                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${sortBy === 'newest' ? 'bg-shopee text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                >
-                  Mới Nhất
-                </button>
                 <button 
                   onClick={() => setSortBy('popular')}
                   className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${sortBy === 'popular' ? 'bg-shopee text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}

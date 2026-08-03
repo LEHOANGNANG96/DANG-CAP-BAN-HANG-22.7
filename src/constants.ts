@@ -1,23 +1,4 @@
-export interface Product {
-  id?: string;
-  externalId?: string;
-  name: string;
-  image: string;
-  originalPrice: string;
-  discountPrice: string;
-  numericPrice?: number;
-  category?: string;
-  badge?: string;
-  affiliateUrl: string;
-  discountPercent?: string;
-  soldCount?: string;
-  numericSoldCount?: number;
-  ratingCount?: string;
-  likesCount?: string;
-  ratingScore?: string;
-  createdAt?: string;
-  searchName?: string;
-}
+export type { Product, CategoryItem } from './types';
 
 export const CATEGORIES = [
   "Tất cả",
