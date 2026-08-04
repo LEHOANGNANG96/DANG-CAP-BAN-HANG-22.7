@@ -54,6 +54,11 @@ import { BenefitItem } from './components/BenefitItem';
 import { SkipToContent } from './components/SkipToContent';
 import { CommandPalette } from './components/CommandPalette';
 import { StatusBadge } from './components/StatusBadge';
+import { InfiniteBrandTicker } from './components/InfiniteBrandTicker';
+import { KineticCategoryCarousel } from './components/KineticCategoryCarousel';
+import { RippleButton } from './components/RippleButton';
+import { TextScrambleBadge } from './components/TextScrambleBadge';
+import { NumberCounter } from './components/NumberCounter';
 import Fuse from 'fuse.js';
 import slugify from 'slugify';
 
@@ -1714,13 +1719,30 @@ export default function App() {
               <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed max-w-5xl">
                 Chào mừng anh đến với <strong className="text-shopee">Shopee VIP</strong> — Trang web tổng hợp các sản phẩm <strong className="text-red-600">HOT nhất trên thị trường</strong> với mức giá <strong className="text-red-500">giảm mạnh cực sâu</strong>. Toàn bộ các Hot Deal đều được tuyển chọn kỹ lượng và cam kết cung cấp các sản phẩm <strong className="text-emerald-600">chính hãng 100%</strong>, mang lại trải nghiệm mua sắm an tâm và tối ưu nhất!
               </p>
-              <button 
-                onClick={scrollToDeals}
-                className="bg-shopee hover:bg-shopee-hover text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-shopee/20 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2"
-              >
-                Xem deal hot hôm nay
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              <div className="flex flex-wrap items-center gap-4 mb-8">
+                <RippleButton 
+                  onClick={scrollToDeals}
+                  size="lg"
+                >
+                  <span>Xem deal hot hôm nay</span>
+                  <ChevronRight className="w-5 h-5" />
+                </RippleButton>
+                
+                <TextScrambleBadge 
+                  code="SHOPEEVIP50K" 
+                  label="Voucher Độc Quyền" 
+                  discountDesc="Giảm thêm 50K cho đơn từ 250K" 
+                />
+              </div>
+
+              <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <NumberCounter 
+                  value={meta?.totalProducts || 59583} 
+                  prefix="Đang cập nhật " 
+                  suffix=" sản phẩm Shopee Mall chính hãng" 
+                />
+              </div>
             </motion.div>
           </div>
           
@@ -1729,6 +1751,19 @@ export default function App() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-shopee rounded-full blur-[120px]"></div>
           </div>
         </section>
+
+        {/* Shopee Mall Infinite Brand Ticker */}
+        <InfiniteBrandTicker />
+
+        {/* Kinetic Category Carousel */}
+        <KineticCategoryCarousel 
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelectCategory={(catName) => {
+            handleCategorySelect(catName);
+            scrollToDeals();
+          }}
+        />
 
         {/* Shopee Style Sections */}
         <ShopeeSections 
@@ -3057,6 +3092,7 @@ export default function App() {
                   <span>{meta.totalProducts.toLocaleString()} sản phẩm</span>
                 </div>
               )}
+              <StatusBadge status="verified" lastSync={meta?.lastUpdated ? new Date(meta.lastUpdated).toLocaleTimeString('vi-VN') : 'Vừa xong'} />
             </div>
             <p className="text-center md:text-right">
               Disclaimer: Website chia sẻ các sản phẩm chất lượng, với giá ưu đãi. Chúng tôi không trực tiếp bán hàng.

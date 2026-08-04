@@ -4,10 +4,11 @@ import { CheckCircle2, AlertTriangle, XCircle, Info, ShieldCheck } from 'lucide-
 interface StatusBadgeProps {
   status: 'success' | 'warning' | 'error' | 'info' | 'verified';
   label?: string;
+  lastSync?: string;
   className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label, className = '' }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label, lastSync, className = '' }) => {
   const configs = {
     success: { 
       bg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80', 
@@ -42,7 +43,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label, classNa
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${Config.bg} ${className}`}>
       <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-      <span>{Config.text}</span>
+      <span>{Config.text}{lastSync ? ` • Đồng bộ: ${lastSync}` : ''}</span>
     </span>
   );
 };

@@ -1,4 +1,5 @@
-export type { Product, CategoryItem } from './types';
+import { Product, CategoryItem } from './types';
+export type { Product, CategoryItem };
 
 export const CATEGORIES = [
   "Tất cả",
